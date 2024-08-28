@@ -32,10 +32,7 @@ main :: proc()
         /* This updates and renders the game. It
            returns false when we want to exit the
            program (break the main loop) */
-        if game_api.update() == false
-        {
-            break
-        }
+        if game_api.update() == false do break
 
         /* Get the last write date of the game DLL
            and compare it to the date of the DLL used
@@ -43,8 +40,9 @@ main :: proc()
            try to do a hot reload */
         dll_time, dll_time_err := os.last_write_time_by_name("game.dll")
 
-        reload := dll_time_err == os.ERROR_NONE &&
-                  game_api.dll_time != dll_time
+        full_reset := game_api.reset()
+
+        reload := full_reset || dll_time_err == os.ERROR_NONE && game_api.dll_time != dll_time
 
         if reload
         {
@@ -56,21 +54,31 @@ main :: proc()
 
             if new_api_ok 
             {
-                /* Pointer to game memory used by OLD game DLL */
-                game_memory := game_api.memory()
+                if full_reset
+                {
+                    game_api.shutdown()
+                    unload_game_api(game_api)
+                    game_api = new_api
+                    game_api.init()
+                }
+                else
+                {
+                    /* Pointer to game memory used by OLD game DLL */
+                    game_memory := game_api.memory()
 
-                /* Unload the old game DLL. Note that the game
-                   memory survives, it will only be deallocated
-                   when explicitly freed */
-                unload_game_api(game_api)
+                    /* Unload the old game DLL. Note that the game
+                       memory survives, it will only be deallocated
+                       when explicitly freed */
+                    unload_game_api(game_api)
 
-                /* Replace game API with new one. Now any call
-                   such as game_api.update() will use the new code */
-                game_api = new_api
+                    /* Replace game API with new one. Now any call
+                       such as game_api.update() will use the new code */
+                    game_api = new_api
 
-                /* Tell the new game API to use the old one's
-                   game memory */
-                game_api.hot_reloaded(game_memory)
+                    /* Tell the new game API to use the old one's
+                       game memory */
+                    game_api.hot_reloaded(game_memory)
+                }
 
                 game_api_version += 1
             }
@@ -90,6 +98,7 @@ GameAPI :: struct {
     shutdown: proc(),
     memory: proc() -> rawptr,
     hot_reloaded: proc(rawptr),
+    reset: proc() -> bool,
 
     // The loaded DLL
     lib: dynlib.Library,
@@ -152,13 +161,14 @@ load_game_api :: proc(api_version: int) -> (GameAPI, bool)
         shutdown = cast(proc()) (dynlib.symbol_address(lib, "game_shutdown") or_else nil),
         memory = cast(proc() -> rawptr) (dynlib.symbol_address(lib, "game_memory") or_else nil),
         hot_reloaded = cast(proc(rawptr)) (dynlib.symbol_address(lib, "game_hot_reloaded") or_else nil),
+        reset = cast(proc() -> bool) (dynlib.symbol_address(lib, "game_reset") or_else nil),
 
         lib = lib,
         dll_time = dll_time,
         api_version = api_version,
     }
 
-    if api.init == nil || api.update == nil || api.shutdown == nil || api.memory == nil || api.hot_reloaded == nil
+    if api.init == nil || api.update == nil || api.shutdown == nil || api.memory == nil || api.hot_reloaded == nil || api.reset == nil
     {
         dynlib.unload_library(api.lib)
         fmt.println("Game DLL missing required procedure")
