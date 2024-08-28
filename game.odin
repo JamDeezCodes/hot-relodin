@@ -61,3 +61,10 @@ game_hot_reloaded :: proc(mem: ^GameMemory)
 {
     memory = mem
 }
+
+@(export)
+game_reset :: proc() -> bool
+{
+    // TODO: Return true when a full game reset is necessary
+    return false
+}
