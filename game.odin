@@ -2,6 +2,11 @@ package game
 
 import "core:fmt"
 
+SomeStruct :: struct
+{
+    // NOTE: Important global state
+}
+
 /* Game state lives within this struct.
    In order for hot reloading to work the game's memory
    must be transferrable from one game DLL to another
@@ -11,9 +16,11 @@ import "core:fmt"
 GameMemory :: struct
 {
     some_state: int,
+    some_struct: SomeStruct,
 }
 
 memory: ^GameMemory
+some_struct: ^SomeStruct
 
 /* Allocates the GameMemory that we use to store
    our game's state. We assign it to a global
@@ -60,6 +67,7 @@ game_memory :: proc() -> rawptr
 game_hot_reloaded :: proc(mem: ^GameMemory)
 {
     memory = mem
+    some_struct = &memory.some_struct
 }
 
 @(export)
