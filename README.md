@@ -1,8 +1,6 @@
 # HotRelodin
 
-Courtesy of [Karl Zylinkski's blog](https://zylinski.se/posts/hot-reload-gameplay-code/) on how to do hot code reloading with Odin.
-
-Karl's example works with Windows, mine works with macOS.
+Courtesy of [Karl Zylinkski's blog](https://zylinski.se/posts/hot-reload-gameplay-code/) on how to do hot code reloading with Odin. Find his more comprehensive template [here](https://github.com/karl-zylinski/odin-raylib-hot-reload-game-template).
 
 ### Requirements
 
