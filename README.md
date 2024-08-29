@@ -12,16 +12,15 @@ Install the [Odin](https://odin-lang.org/docs/install/) programming language.
 
 Build the game DLL:
 ```shell
-odin build game.odin -file -build-mode:dll -out:game.dll
+odin build game -build-mode:dll -out:game.dll
 ```
 
-Compile `main.odin` and run it:
+Compile `main` and run it:
 ```shell
-odin build main.odin -file
-./main
+odin run main
 ```
 
-In `game.odin`, modify `game_update`:
+In `game/game.odin`, modify `game_update`:
 ```diff
 game_update :: proc() -> bool
 {
@@ -34,7 +33,13 @@ game_update :: proc() -> bool
 
 Rebuild the game DLL:
 ```shell
-odin build game.odin -file -build-mode:dll -out:game.dll
+odin build game -build-mode:dll -out:game.dll
 ```
 
 Now you're "hot relodin"!
+
+### Compile in "release" mode
+
+```shell
+odin build main_release
+```
