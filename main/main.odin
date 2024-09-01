@@ -1,4 +1,4 @@
-package game
+package main
 
 import "core:dynlib"
 import "core:os"
